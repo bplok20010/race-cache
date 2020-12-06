@@ -9,7 +9,6 @@ function getMemoryCache() {
 			return Promise.resolve(void data.set(key, value));
 		},
 		unset(key: string) {
-			data.delete(key);
 			return Promise.resolve(void data.delete(key));
 		},
 		clear() {
