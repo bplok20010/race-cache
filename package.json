@@ -1,7 +1,7 @@
 {
 	"name": "race-cache",
-	"version": "1.0.0",
-	"description": "确保依赖数据的高可用性缓存工具",
+	"version": "1.0.1",
+	"description": "确保依赖数据高可用性的缓存函数",
 	"main": "cjs/index.js",
 	"module": "esm/index.js",
 	"types": "lib/index.d.ts",
