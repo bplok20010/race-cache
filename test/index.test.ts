@@ -1,4 +1,4 @@
-import raceCache, { cache, raceCacheWithInfo } from "../src";
+import { raceCache, cache, raceCacheWithInfo } from "../src";
 
 function sleep(time = 0) {
 	return new Promise(resolve => {
@@ -65,7 +65,7 @@ test("race-cache expire", async () => {
 			}, 50);
 		}),
 		{
-			waitTime: 60,
+			waitTime: 10,
 		}
 	);
 
