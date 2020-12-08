@@ -31,6 +31,12 @@ export interface RaceCacheOptions<T = Promise<any>> {
 		get: typeof _cache.get;
 		set: typeof _cache.set;
 	};
+	// 超时触发回调，只在缓存存在的区情况下触发
+	onTimeout?: (value: GetPromiseResolveType<T>) => void;
+	// 传入的promise触发resolve时调用
+	onFulfilled?: (value: GetPromiseResolveType<T>) => void;
+	// 传入的promise触发reject时调用
+	onRejected?: (reason: any) => void;
 }
 
 const version = "%VERSION%";
@@ -42,9 +48,19 @@ export function raceCache<T extends Promise<any>>(
 	promise: T,
 	options: RaceCacheOptions<T> = {}
 ): Promise<GetPromiseResolveType<T>> {
-	const { waitTime = 0, expire, ignoreError = true, raceCallback, cache = _cache } = options;
+	const {
+		waitTime = 0,
+		expire,
+		ignoreError = true,
+		raceCallback,
+		cache = _cache,
+		onFulfilled,
+		onRejected,
+		onTimeout,
+	} = options;
 	let p = isPromise(promise) ? promise : Promise.resolve(promise as any);
 	let hasCall = false;
+	let t = 1; // 乐观锁ID
 
 	const setRaceInfo = (info: RaceInfo<T>) => {
 		if (raceCallback && !hasCall) {
@@ -54,9 +70,15 @@ export function raceCache<T extends Promise<any>>(
 	};
 
 	const cp: Promise<GetPromiseResolveType<T>> = new Promise(resolve => {
+		const c = t;
 		setTimeout(() => {
+			const hasTimeout = c === t;
+
 			cache.get(key).then(ret => {
 				if (ret != null) {
+					if (hasTimeout && onTimeout) {
+						onTimeout(ret);
+					}
 					setRaceInfo({
 						timeout: true,
 						data: ret,
@@ -68,24 +90,38 @@ export function raceCache<T extends Promise<any>>(
 	});
 
 	p = p.then(ret => {
+		t++;
+
+		if (onFulfilled) {
+			onFulfilled(ret);
+		}
+
 		cache.set(key, ret, {
 			expire,
 		});
+
 		setRaceInfo({
 			ok: true,
 			data: ret,
 		});
+
 		return ret;
 	});
 
 	if (ignoreError) {
 		p = p.catch((e: any) => {
+			if (onRejected) {
+				onRejected(e);
+			}
 			return cache.get(key).then(ret => {
+				t++;
+
 				if (ret != null) {
 					setRaceInfo({
 						error: e,
 						data: ret,
 					});
+
 					return ret;
 				}
 
