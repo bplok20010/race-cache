@@ -348,3 +348,129 @@ test("race-cache race info allow error", async () => {
 	await sleep(60);
 	expect(await cache.get(key)).toEqual(5);
 });
+
+test("race-cache onTimeout", async () => {
+	const key = "race-cache onTimeout";
+	let value = 5;
+	await cache.set(key, value);
+
+	const onTimeout1 = jest.fn();
+	const onTimeout2 = jest.fn();
+	await raceCache(
+		key,
+		new Promise<number>(resolve => {
+			setTimeout(() => {
+				resolve(value);
+			}, 50);
+		}),
+		{ onTimeout: onTimeout1, waitTime: 0 }
+	);
+
+	expect(onTimeout1).toHaveBeenCalled();
+
+	await raceCache(
+		key,
+		new Promise<number>(resolve => {
+			setTimeout(() => {
+				resolve(value);
+			}, 50);
+		}),
+		{ onTimeout: onTimeout2, waitTime: 100 }
+	);
+	expect(onTimeout2).not.toHaveBeenCalled();
+});
+
+test("race-cache onFulfilled", async () => {
+	const key = "race-cache onFulfilled";
+	let value = 5;
+	await cache.set(key, value);
+
+	const onFulfilled1 = jest.fn();
+	const onFulfilled2 = jest.fn();
+	await raceCache(
+		key,
+		new Promise<number>(resolve => {
+			setTimeout(() => {
+				resolve(value);
+			}, 50);
+		}),
+		{ onFulfilled: onFulfilled1, waitTime: 0 }
+	);
+
+	await sleep(60);
+
+	expect(onFulfilled1).toHaveBeenCalled();
+
+	await raceCache(
+		key,
+		new Promise<number>(resolve => {
+			setTimeout(() => {
+				resolve(value);
+			}, 50);
+		}),
+		{ onFulfilled: onFulfilled2, waitTime: 100 }
+	);
+
+	await sleep(110);
+
+	expect(onFulfilled2).toHaveBeenCalled();
+});
+
+test("race-cache onRejected", async () => {
+	const key = "race-cache onRejected";
+	let value = 5;
+	await cache.set(key, value);
+
+	const onRejected1 = jest.fn();
+	const onRejected2 = jest.fn();
+	const onRejected3 = jest.fn();
+	const onTimeout1 = jest.fn();
+	const throwError = jest.fn();
+	await raceCache(
+		key,
+		new Promise<number>((_, reject) => {
+			setTimeout(() => {
+				reject();
+			}, 50);
+		}),
+		{ onRejected: onRejected1, waitTime: 0 }
+	);
+
+	await sleep(60);
+
+	expect(onRejected1).toHaveBeenCalled();
+
+	await raceCache(
+		key,
+		new Promise<number>((_, reject) => {
+			setTimeout(() => {
+				reject();
+			}, 50);
+		}),
+		{ onRejected: onRejected2, onTimeout: onTimeout1, waitTime: 100 }
+	);
+
+	await sleep(110);
+
+	expect(onRejected2).toHaveBeenCalled();
+	expect(onTimeout1).not.toHaveBeenCalled();
+
+	await cache.unset(key);
+	try {
+		await raceCache(
+			key,
+			new Promise<number>((_, reject) => {
+				setTimeout(() => {
+					reject();
+				}, 50);
+			}),
+			{ onRejected: onRejected3, waitTime: 100 }
+		);
+	} catch (e) {
+		throwError();
+	}
+	await sleep(110);
+
+	expect(onRejected3).toHaveBeenCalled();
+	expect(throwError).toHaveBeenCalled();
+});
