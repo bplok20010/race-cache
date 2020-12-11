@@ -72,17 +72,21 @@ export function raceCache<T extends Promise<any>>(
 	const cp: Promise<GetPromiseResolveType<T>> = new Promise(resolve => {
 		const c = t;
 		setTimeout(() => {
-			const hasTimeout = c === t;
+			// const hasTimeout = c === t;
 
 			cache.get(key).then(ret => {
 				if (ret != null) {
+					const hasTimeout = c === t;
+
 					if (hasTimeout && onTimeout) {
 						onTimeout(ret);
 					}
+
 					setRaceInfo({
 						timeout: true,
 						data: ret,
 					});
+
 					resolve(ret);
 				}
 			});
