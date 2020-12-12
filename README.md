@@ -1,6 +1,6 @@
 # race-cache
 
-确保依赖数据高可用性的缓存函数，如：网络环境差或临时断网的情况。
+确保依赖数据的高可用缓存函数。
 
 执行步骤如下：
 ![race-cache](https://images-cdn.shimo.im/Go5Nqi6uWM6Vivdo__thumbnail.png)
@@ -26,7 +26,7 @@ async function getList(url){
 }
 ```
 
-> 内置缓存在浏览器环境使用`localStorage`，在node.js环境使用的原生`Map`，可通过`cache`参数进行自定义缓存接口。
+> 内置缓存在浏览器环境使用 `localStorage`，在 node.js 环境使用的原生 `Map`，可通过 `cache` 参数进行自定义缓存接口。
 
 ## API
 
@@ -42,8 +42,11 @@ cache.get
 cache.set
 cache.unset
 cache.clear
+cache.setCapacity
 ...
 ```
+
+**注：** 内置缓存 LRU 容量默认为：99
 
 ## interfaces 
 
@@ -65,11 +68,11 @@ interface RaceCacheOptions<T> {
         get: (key: string) => Promise<any>;
         set: (key: string, value: any, options?: CacheOptions | undefined) => Promise<void>;
   };
-  // 超时触发回调，只在缓存存在的区情况下触发
+	// 超时触发回调，只在缓存存在的情况下触发
 	onTimeout?: (value: GetPromiseResolveType<T>) => void;
-	// 传入的promise触发resolve时调用
+	// 传入的 promise 触发 resolve 时调用
 	onFulfilled?: (value: GetPromiseResolveType<T>) => void;
-	// 传入的promise触发reject时调用
+	// 传入的 promise 触发 reject 时调用
 	onRejected?: (reason: any) => void;
 }
 
