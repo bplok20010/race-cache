@@ -42,6 +42,7 @@ cache.get
 cache.set
 cache.unset
 cache.clear
+...
 ```
 
 ## interfaces 
@@ -63,7 +64,13 @@ interface RaceCacheOptions<T> {
 	cache?: {
         get: (key: string) => Promise<any>;
         set: (key: string, value: any, options?: CacheOptions | undefined) => Promise<void>;
-	};
+  };
+  // 超时触发回调，只在缓存存在的区情况下触发
+	onTimeout?: (value: GetPromiseResolveType<T>) => void;
+	// 传入的promise触发resolve时调用
+	onFulfilled?: (value: GetPromiseResolveType<T>) => void;
+	// 传入的promise触发reject时调用
+	onRejected?: (reason: any) => void;
 }
 
 interface RaceInfo<T> {
