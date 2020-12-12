@@ -22,8 +22,13 @@ export interface RaceCacheOptions<T = Promise<any>> {
 	// 默认：0
 	waitTime?: number;
 	// 是否忽略promise的异常catch，并使用缓存数据
+	// 如果缓存不存在则抛出异常
 	// 默认：true
 	ignoreError?: boolean;
+	// ignoreError 为 true 的情况下生效
+	// 传入的 promise 触发 reject 且无缓存的情况下会调用 fallback
+	// 如果 fallback 也未设置在则直接抛异常
+	fallback?: () => T | GetPromiseResolveType<T>;
 	// 获取内部状态信息，如数据是否超时、异常或正常的返回
 	raceCallback?: (raceInfo: RaceInfo<T>) => void;
 	// 自定义缓存接口：get,set
@@ -57,6 +62,7 @@ export function raceCache<T extends Promise<any>>(
 		onFulfilled,
 		onRejected,
 		onTimeout,
+		fallback,
 	} = options;
 	let p = isPromise(promise) ? promise : Promise.resolve(promise as any);
 	let hasCall = false;
@@ -117,20 +123,24 @@ export function raceCache<T extends Promise<any>>(
 			if (onRejected) {
 				onRejected(e);
 			}
-			return cache.get(key).then(ret => {
-				t++;
+			return cache
+				.get(key)
+				.then(ret => {
+					t++;
+					return ret == null && !hasCall && fallback ? fallback() : ret;
+				})
+				.then(ret => {
+					if (ret != null) {
+						setRaceInfo({
+							error: e,
+							data: ret,
+						});
 
-				if (ret != null) {
-					setRaceInfo({
-						error: e,
-						data: ret,
-					});
+						return ret;
+					}
 
-					return ret;
-				}
-
-				throw e;
-			});
+					throw e;
+				});
 		});
 	}
 

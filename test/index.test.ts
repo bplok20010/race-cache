@@ -474,3 +474,73 @@ test("race-cache onRejected", async () => {
 	expect(onRejected3).toHaveBeenCalled();
 	expect(throwError).toHaveBeenCalled();
 });
+
+test("race-cache fallback", async () => {
+	const key = "race-cache fallback";
+	const throwError = jest.fn();
+	const fallback1 = jest.fn();
+	const fallback2 = jest.fn();
+
+	const value1 = await raceCache(
+		key,
+		new Promise<number>((_, reject) => {
+			setTimeout(() => {
+				reject();
+			}, 50);
+		}),
+		{
+			fallback() {
+				return 99;
+			},
+			waitTime: 0,
+		}
+	);
+
+	expect(value1).toEqual(99);
+
+	try {
+		await raceCache(
+			key,
+			new Promise<number>((_, reject) => {
+				setTimeout(() => {
+					reject();
+				}, 50);
+			}),
+			{
+				ignoreError: false,
+				fallback() {
+					fallback1();
+					return 99;
+				},
+				waitTime: 0,
+			}
+		);
+	} catch (e) {
+		throwError();
+	}
+
+	expect(throwError).toHaveBeenCalled();
+	expect(fallback1).not.toHaveBeenCalled();
+
+	await cache.set(key, 5);
+
+	const value2 = await raceCache(
+		key,
+		new Promise<number>((_, reject) => {
+			setTimeout(() => {
+				reject();
+			}, 50);
+		}),
+		{
+			ignoreError: true,
+			fallback() {
+				fallback2();
+				return 99;
+			},
+			waitTime: 30,
+		}
+	);
+
+	expect(value2).toEqual(5);
+	expect(fallback2).not.toHaveBeenCalled();
+});
