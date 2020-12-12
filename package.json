@@ -1,7 +1,7 @@
 {
 	"name": "race-cache",
-	"version": "1.1.0",
-	"description": "确保依赖数据高可用性的缓存函数",
+	"version": "1.2.0",
+	"description": "确保依赖数据的高可用缓存函数。",
 	"main": "cjs/index.js",
 	"module": "esm/index.js",
 	"types": "lib/index.d.ts",
@@ -37,6 +37,7 @@
 	},
 	"keywords": [
 		"cache",
+		"lru-cache",
 		"race-cache"
 	],
 	"author": "nobo.zhou@foxmail.com",
@@ -48,7 +49,7 @@
 	"browserslist": [
 		">0.25%",
 		"not dead",
-		"not ie <= 11",
+		"not ie <= 10",
 		"not op_mini all"
 	]
 }
