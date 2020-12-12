@@ -33,9 +33,9 @@ async function fetchList(url){
 ```ts
 import { raceCache, raceCacheWithInfo, cache } from 'race-cache'
 
-raceCache(key, promise[, option])
+raceCache(key, promise[, RaceCacheOptions])
 // or
-raceCacheWithInfo(key, promise[, options])
+raceCacheWithInfo(key, promise[, RaceCacheOptions])
 
 // 内置缓存对象 cache
 cache.get
@@ -48,7 +48,7 @@ cache.setCapacity
 
 **注：** 内置缓存 LRU 容量默认为：99
 
-## interfaces 
+## Interfaces 
 
 ```ts
 interface RaceCacheOptions<T> {
