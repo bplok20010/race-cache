@@ -65,7 +65,7 @@ interface RaceCacheOptions<T> {
   // ignoreError 为 true 的情况下生效
   // 传入的 promise 触发 reject 且无缓存的情况下会调用 fallback
   // 如果 fallback 也未设置在则直接抛异常
-  fallback?: () => T | GetPromiseResolveType<T>;
+  fallback?: () => Promise<GetPromiseResolveType<T>> | GetPromiseResolveType<T>;
   // 获取内部状态信息，如：数据是否超时、异常或正常的返回
   raceCallback?: (raceInfo: RaceInfo<T>) => void;
   // 自定义缓存接口：get,set

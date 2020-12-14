@@ -3,7 +3,7 @@ import isPromise from "is-promise";
 
 type GetPromiseResolveType<T> = T extends Promise<infer U> ? U : never;
 
-export interface RaceInfo<T = Promise<any>> {
+export interface RaceInfo<T extends Promise<any> = Promise<any>> {
 	// 数据正常返回
 	ok?: boolean;
 	// 超时返回
@@ -14,7 +14,7 @@ export interface RaceInfo<T = Promise<any>> {
 	data: GetPromiseResolveType<T>;
 }
 
-export interface RaceCacheOptions<T = Promise<any>> {
+export interface RaceCacheOptions<T extends Promise<any> = Promise<any>> {
 	// 内置缓存超时时间，单位：ms
 	// 默认：3600 * 24 * 365 * 1000
 	expire?: number;
@@ -28,7 +28,7 @@ export interface RaceCacheOptions<T = Promise<any>> {
 	// ignoreError 为 true 的情况下生效
 	// 传入的 promise 触发 reject 且无缓存的情况下会调用 fallback
 	// 如果 fallback 也未设置在则直接抛异常
-	fallback?: () => T | GetPromiseResolveType<T>;
+	fallback?: () => Promise<GetPromiseResolveType<T>> | GetPromiseResolveType<T>;
 	// 获取内部状态信息，如数据是否超时、异常或正常的返回
 	raceCallback?: (raceInfo: RaceInfo<T>) => void;
 	// 自定义缓存接口：get,set
@@ -48,7 +48,7 @@ const version = "%VERSION%";
 
 export { _cache as cache, version };
 
-export function raceCache<T extends Promise<any>>(
+export function raceCache<T extends Promise<any> = Promise<any>>(
 	key: string,
 	promise: T,
 	options: RaceCacheOptions<T> = {}
@@ -147,7 +147,7 @@ export function raceCache<T extends Promise<any>>(
 	return Promise.race([p, cp]);
 }
 
-export function raceCacheWithInfo<T extends Promise<any>>(
+export function raceCacheWithInfo<T extends Promise<any> = Promise<any>>(
 	key: string,
 	promise: T,
 	options: Omit<RaceCacheOptions<T>, "raceCallback"> = {}
