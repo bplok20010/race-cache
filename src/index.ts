@@ -21,6 +21,8 @@ export interface RaceCacheOptions<T extends Promise<any> = Promise<any>> {
 	// 等待外部响应时间，超时后走缓存数据，单位：ms
 	// 默认：0
 	waitTime?: number;
+	// 超时状态下，当缓存无数据时调用
+	getInitialValue?: () => Promise<GetPromiseResolveType<T>> | GetPromiseResolveType<T>;
 	// 是否忽略promise的异常catch，并使用缓存数据
 	// 如果缓存不存在则抛出异常
 	// 默认：true
@@ -56,6 +58,7 @@ export function raceCache<T extends Promise<any> = Promise<any>>(
 	const {
 		waitTime = 0,
 		expire,
+		getInitialValue,
 		ignoreError = true,
 		raceCallback,
 		cache = _cache,
@@ -78,10 +81,18 @@ export function raceCache<T extends Promise<any> = Promise<any>>(
 	const cp: Promise<GetPromiseResolveType<T>> = new Promise(resolve => {
 		const c = t;
 		setTimeout(() => {
-			// const hasTimeout = c === t;
+			cache
+				.get(key)
+				.then(ret => {
+					if (ret == null && getInitialValue && c === t) {
+						return getInitialValue();
+					}
 
-			cache.get(key).then(ret => {
-				if (ret != null) {
+					return ret;
+				})
+				.then(ret => {
+					if (ret == null) return;
+
 					const hasTimeout = c === t;
 
 					if (hasTimeout && onTimeout) {
@@ -94,8 +105,7 @@ export function raceCache<T extends Promise<any> = Promise<any>>(
 					});
 
 					resolve(ret);
-				}
-			});
+				});
 		}, waitTime || 0);
 	});
 
