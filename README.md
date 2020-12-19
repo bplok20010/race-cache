@@ -58,6 +58,8 @@ interface RaceCacheOptions<T> {
   // 等待外部响应时间，超时后走缓存数据，单位：ms
   // 默认：0
   waitTime?: number;
+  // 超时状态下，当缓存无数据时调用
+	getInitialValue?: () => Promise<GetPromiseResolveType<T>> | GetPromiseResolveType<T>;
   // 是否忽略 promise 的异常 catch，并使用缓存数据
   // 如果缓存不存在则抛出异常
   // 默认：true
