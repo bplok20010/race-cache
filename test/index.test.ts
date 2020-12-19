@@ -100,6 +100,82 @@ test("race-cache timeout", async () => {
 	expect(data).toEqual(5);
 });
 
+test("race-cache timeout with getInitialValue", async () => {
+	const key = "race-cache timeout with getInitialValue";
+	let value = 5;
+	let data = await raceCache(
+		key,
+		new Promise<number>(resolve => {
+			setTimeout(() => {
+				resolve(value);
+			}, 50);
+		}),
+		{
+			waitTime: 0,
+			getInitialValue() {
+				return 1;
+			},
+		}
+	);
+	expect(data).toEqual(1);
+
+	await sleep(100);
+
+	data = await raceCache(
+		key,
+		new Promise<number>(resolve => {
+			setTimeout(() => {
+				resolve(value);
+			}, 50);
+		}),
+		{
+			waitTime: 0,
+			getInitialValue() {
+				return 1;
+			},
+		}
+	);
+	expect(data).toEqual(5);
+});
+
+test("race-cache timeout with getInitialValue promise", async () => {
+	const key = "race-cache timeout with getInitialValue promise";
+	let value = 5;
+	let data = await raceCache(
+		key,
+		new Promise<number>(resolve => {
+			setTimeout(() => {
+				resolve(value);
+			}, 50);
+		}),
+		{
+			waitTime: 0,
+			getInitialValue() {
+				return Promise.resolve(1);
+			},
+		}
+	);
+	expect(data).toEqual(1);
+
+	await sleep(100);
+
+	data = await raceCache(
+		key,
+		new Promise<number>(resolve => {
+			setTimeout(() => {
+				resolve(value);
+			}, 50);
+		}),
+		{
+			waitTime: 0,
+			getInitialValue() {
+				return Promise.resolve(1);
+			},
+		}
+	);
+	expect(data).toEqual(5);
+});
+
 test("race-cache custom cache", async () => {
 	const key = "race-cache custom cache";
 	let cacheValue: any = {};
