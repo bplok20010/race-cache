@@ -3,7 +3,7 @@
 确保依赖数据的高可用缓存函数。
 
 执行步骤如下：
-![race-cache](https://images-cdn.shimo.im/Go5Nqi6uWM6Vivdo__thumbnail.png)
+![race-cache](https://img30.360buyimg.com/ling/jfs/t1/107342/3/15744/35005/6152c1efE4aa6e5a5/44b55ab52a026fba.png)
 
 ## Install
 
